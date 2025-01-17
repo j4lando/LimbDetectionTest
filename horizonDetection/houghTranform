@@ -1,0 +1,64 @@
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+
+def hough_parabola(image, a_range, b_range, c_range, threshold):
+    height, width = image.shape
+    accumulator = np.zeros((len(a_range), len(b_range), len(c_range)))
+    
+    y_indices, x_indices = np.nonzero(image)
+    
+    for i, a in enumerate(a_range):
+        for j, b in enumerate(b_range):
+            for k, c in enumerate(c_range):
+                y_calc = a * x_indices**2 + b * x_indices + c
+                votes = np.sum((np.abs(y_calc - y_indices) < 1).astype(int))
+                accumulator[i, j, k] = votes
+    
+    parabolas = []
+    for i, a in enumerate(a_range):
+        for j, b in enumerate(b_range):
+            for k, c in enumerate(c_range):
+                if accumulator[i, j, k] > threshold:
+                    parabolas.append((a, b, c))
+    
+    return parabolas, accumulator
+
+def draw_parabola(image, a, b, c, color=(0, 255, 0), thickness=2):
+    height, width = image.shape[:2]
+    x = np.arange(width)
+    y = (a * x**2 + b * x + c).astype(int)
+    pts = np.column_stack((x, y))
+    cv2.polylines(image, [pts], False, color, thickness)
+
+# Load and preprocess the image
+image = cv2.imread('test_images/earth.jpg', 0)
+threshold = 10
+binary_mask = np.where(image < threshold, 255, 0).astype(np.uint8)
+# Apply Gaussian blur to reduce noise
+blurred = cv2.GaussianBlur(binary_mask, (3, 3), 0)
+
+# Perform Canny edge detection
+edges = cv2.Canny(blurred, 100, 200)
+#edges = cv2.Canny(image, 50, 150)
+
+# Define parameter ranges
+a_range = np.linspace(-0.01, 0.01, 20)
+b_range = np.linspace(-1, 1, 20)
+c_range = np.linspace(-100, 100, 20)
+
+# Perform Hough transform
+parabolas, accumulator = hough_parabola(edges, a_range, b_range, c_range, threshold=50)
+
+# Draw detected parabolas
+result = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+for a, b, c in parabolas:
+    draw_parabola(result, a, b, c)
+
+# Display results
+plt.figure(figsize=(12, 4))
+plt.subplot(131), plt.imshow(image, cmap='gray'), plt.title('Original Image')
+plt.subplot(132), plt.imshow(edges, cmap='gray'), plt.title('Edges')
+plt.subplot(133), plt.imshow(result), plt.title('Detected Parabolas')
+plt.tight_layout()
+plt.show()
