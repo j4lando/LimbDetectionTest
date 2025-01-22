@@ -7,7 +7,6 @@ from sklearn.linear_model import RANSACRegressor, LinearRegression
 def parabola_fit(x, a, b, c):
     return a * x**2 + b * x + c
 
-
 # Define the points
 x = np.linspace(-2, 2, 80)
 
@@ -24,6 +23,8 @@ new_random_y = np.random.uniform(-3, 3, 10)
 x_noisy = np.append(x, new_random_x)
 y_noisy = np.append(y, new_random_y)
 # Fit a parabola (2nd degree polynomial)
+
+
 
 # Reshape x_noisy for RANSAC
 x_noisy_reshaped = x_noisy.reshape(-1, 1)
