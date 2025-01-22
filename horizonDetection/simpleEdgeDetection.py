@@ -28,6 +28,7 @@ threshold = 0.1 * np.max(np.abs(log))
 edges = np.zeros_like(zero_crossings, dtype=np.uint8)
 edges[np.abs(log) > threshold] = 255
 
+
 plt.figure(figsize=(12, 4))
 plt.subplot(131), plt.imshow(image, cmap='gray'), plt.title('Original Image')
 plt.subplot(132), plt.imshow(canny, cmap='gray'), plt.title('Canny')

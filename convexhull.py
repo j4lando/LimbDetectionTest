@@ -43,13 +43,13 @@ def convex_hull(points):
     
     return np.array(stack)
 
-def addNoise(x,y, num):
-    max = np.max(y) * 20
-    min = np.min(y) * 20
-    new_random_x = np.random.uniform(-10, 10, num)
+def addNoise(x,y, num, x_c, y_c):
+    x_range = np.max(abs(x)) * x_c
+    y_range = np.max(abs(y)) * y_c
+    new_random_x = np.random.uniform(-x_range, x_range, num)
 
     # Compute the corresponding y-values
-    new_random_y = np.random.uniform(min, max, num)
+    new_random_y = np.random.uniform(-y_range, y_range, num)
 
     # Append these new random points to x and y
     x_noisy = np.append(x, new_random_x)
@@ -220,6 +220,6 @@ def show():
     plt.show()
 
 #show()
-error = simulation(np.array([-1,0,.1]), 1000)
-print(error)
+#error = simulation(np.array([-1,0,.1]), 1000)
+#print(error)
 #print(simulation(np.array([-1,0,.1]), 100))

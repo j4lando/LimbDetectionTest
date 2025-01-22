@@ -1,58 +1,60 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import minimize
 import cv2
 
-def mark_longest_white_line(image_path, output_path):
-    # Read the image in grayscale
-    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    if img is None:
-        raise ValueError(f"Error: Unable to read the image '{image_path}'.")
+# Ellipse cost function
+def ellipse_cost(params, data):
+    A, B, C, D, E, F = params
+    x, y = data[:, 0], data[:, 1]
+    cost = (A * x**2 + B * x * y + C * y**2 + D * x + E * y + F)**2
+    valid_cost = np.sort(cost)[:-10]  # Exclude top 10 largest values
+    return np.sum(valid_cost)
 
-    # Ensure the image is binary
-    _, binary = cv2.threshold(img, 128, 255, cv2.THRESH_BINARY)
+# Fit ellipse parameters
+def fit(data):
+    initial_params = [1, 0, 1, 0, 0, -1]
+    result = minimize(ellipse_cost, initial_params, args=(data,))
+    return result.x
 
-    # Find contours
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+# Generate fitted ellipse points for visualization
+def generate_fitted_ellipse(A, B, C, D, E, F, num_points=500):
+    theta = np.linspace(0, 2 * np.pi, num_points)
+    x_center = (2 * C * D - B * E) / (B**2 - 4 * A * C)
+    y_center = (2 * A * E - B * D) / (B**2 - 4 * A * C)
+    semi_major = np.sqrt(abs(F / A))
+    semi_minor = np.sqrt(abs(F / C))
+    x = x_center + semi_major * np.cos(theta)
+    y = y_center + semi_minor * np.sin(theta)
+    plt.plot(x, y, label="Fitted Ellipse", color="red", linewidth=2)
 
-    max_length = 0
-    longest_line = None
+# Plotting function
+def plot(img):
+    points = np.argwhere(img == 255)
+    if len(points) == 0:
+        print("No points detected in the image.")
+        return
+    x_coords, y_coords = points[:, 1], points[:, 0]
+    data = np.vstack((x_coords, y_coords)).T
+    A, B, C, D, E, F = fit(data)
+    plt.figure(figsize=(8, 6))
+    plt.scatter(x_coords, y_coords, color='green', s=0.5)
+    generate_fitted_ellipse(A, B, C, D, E, F)
+    plt.xlabel("X-axis")
+    plt.ylabel("Y-axis")
+    plt.title("Fitted Ellipse on Edge Points")
+    plt.axis("equal")
+    plt.show()
 
-    for contour in contours:
-        # Fit a line to the contour
-        [vx, vy, x, y] = cv2.fitLine(contour, cv2.DIST_L2, 0, 0.01, 0.01)
+# Preprocessing and edge detection
+image = cv2.imread('test_images/earth.jpg', cv2.IMREAD_GRAYSCALE)
+threshold_value = 10
+binary_mask = np.where(image < threshold_value, 255, 0).astype(np.uint8)
+blurred = cv2.GaussianBlur(binary_mask, (3, 3), 0)
+laplacian = cv2.Laplacian(blurred, cv2.CV_64F)
+threshold = 0.1 * np.max(np.abs(laplacian))
+edges = np.zeros_like(laplacian, dtype=np.uint8)
+edges[np.abs(laplacian) > threshold] = 255
 
-        if vx == 0:
-            # Handle vertical line case
-            length = binary.shape[0]  # Use image height for vertical lines
-            longest_line = ((int(x), 0), (int(x), binary.shape[0] - 1).item())
-        else:
-            # Calculate the endpoints of the line
-            lefty = int((-x * vy / vx) + y)
-            righty = int(((binary.shape[1] - x) * vy / vx + y).item())
-
-            # Calculate the length of the line using Euclidean distance
-            length = np.sqrt(float((binary.shape[1] - 1)**2 + (righty - lefty)**2))
-            longest_line = ((0, lefty), (binary.shape[1] - 1, righty))
-
-        if length > max_length:
-            max_length = length
-
-    # Read the original image in color
-    color_img = cv2.imread(image_path)
-    if color_img is None:
-        raise ValueError(f"Error: Unable to read the color image '{image_path}'.")
-
-    # Draw the longest line in red if found
-    if longest_line:
-        cv2.line(color_img, longest_line[0], longest_line[1], (0, 0, 255), 2)
-        # Save the output image
-        cv2.imwrite(output_path, color_img)
-        return f"Output image saved as '{output_path}'."
-    else:
-        return "No white lines found in the image."
-
-# Test the function with a sample image
-try:
-    result = mark_longest_white_line('test_images/earth.jpg', 'test_images/output_image.png')
-    print(result)
-except Exception as e:
-    print(f"Error: {e}")
+# Plot edges and fit ellipse
+plot(edges)
