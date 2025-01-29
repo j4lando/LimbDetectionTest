@@ -4,7 +4,10 @@ import matplotlib.pyplot as plt
 
 
 # Read the image in grayscale
-image = cv2.imread('test_images/earth_night.jpg', 0 )
+#path = 'test_images/BlackMarble2016_00066.png'
+path = 'test_images/infared.jpeg'
+img = cv2.imread(path, cv2.IMREAD_COLOR)
+image = cv2.imread(path, 0 )
 threshold = 10
 
 
@@ -30,7 +33,7 @@ edges[np.abs(log) > threshold] = 255
 
 
 plt.figure(figsize=(12, 4))
-plt.subplot(131), plt.imshow(image, cmap='gray'), plt.title('Original Image')
+plt.subplot(131), plt.imshow(img, cmap='gray'), plt.title('Original Image')
 plt.subplot(132), plt.imshow(canny, cmap='gray'), plt.title('Canny')
 plt.subplot(133), plt.imshow(edges, cmap='gray'), plt.title('Detected Edges')
 plt.tight_layout()
