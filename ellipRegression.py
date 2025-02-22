@@ -57,23 +57,23 @@ def generate_fitted_ellipse(A, B, C, D, E, F, num_points=500):
 def plot(img):
     points = np.argwhere(img == 255)
     x_coords, y_coords = points[:, 1], points[:, 0]  # Note: Flip row and column for plotting
-    x_coords -=200
-    y_coords -=200
+    x_coords -=130
+    y_coords -=170
     data = np.vstack((x_coords, y_coords)).T
     A, B, C, D, E, F = fit(data)
 
     # Plot the noisy data and fitted ellipse
-    plt.figure(figsize=(8, 6))
-    plt.imshow(img, cmap='gray')
-    plt.scatter(x_coords, y_coords, color='green', s=.5)
+    #plt.imshow(img, cmap='gray')
+    plt.scatter(x_coords, y_coords, color='green', s=.2)
     generate_fitted_ellipse(A, B, C, D, E, F)
     plt.xlabel("X")
     plt.ylabel("Y")
     #plt.axis("equal")
     plt.show()
 
-
-image = cv2.imread('test_images/earth_night.jpg', 0 )
+#path = 'test_images/BlackMarble2016_00066.png'
+path = 'test_images/infared.jpeg'
+image = cv2.imread(path, 0 )
 threshold = 10
 
 
