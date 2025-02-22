@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 # Read the image in grayscale
-image = cv2.imread('test_images/earth_night.jpg', 0 )
+image = cv2.imread('test_images/earth.jpg', 0 )
 threshold = 10
 
 
@@ -28,10 +28,12 @@ threshold = 0.1 * np.max(np.abs(log))
 edges = np.zeros_like(zero_crossings, dtype=np.uint8)
 edges[np.abs(log) > threshold] = 255
 
+coords = np.column_stack(np.where(canny[:, int(800):int(800)+1] > 0))
+print(coords)
 
 plt.figure(figsize=(12, 4))
 plt.subplot(131), plt.imshow(image, cmap='gray'), plt.title('Original Image')
 plt.subplot(132), plt.imshow(canny, cmap='gray'), plt.title('Canny')
-plt.subplot(133), plt.imshow(edges, cmap='gray'), plt.title('Detected Edges')
+plt.subplot(133), plt.imshow(binary_mask, cmap='gray'), plt.title('Detected Edges')
 plt.tight_layout()
 plt.show()
