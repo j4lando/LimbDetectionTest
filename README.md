@@ -1,2 +1,2 @@
-# FFTinC-
-bare bones FFT implementation and testing
+# LimbDetectionTest-
+expirementing on accuracy of horizion detection with different algorithms and lighting
