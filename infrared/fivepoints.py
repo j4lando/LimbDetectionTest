@@ -2,24 +2,54 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def run_convolution_on_image(img, x_m):
     # Extract a vertical slice of the image at x_m
     slice_img = img[:, int(x_m):int(x_m)+1]
 
-    # Apply Sobel operator for vertical edge detection
-    canny = cv2.Canny(slice_img, 100,200)
+    blurred = cv2.GaussianBlur(slice_img, (3, 3), 0)
 
-    #print(canny)
+    # Apply Canny operator for vertical edge detection
+    canny = cv2.Canny(blurred, 100, 200)
+  
     # Threshold to detect edges (white pixels)
     #_, edge = cv2.threshold(np.abs(sobel_x), 50, 255, cv2.THRESH_BINARY)
     return canny
 
 def coordinates_of_white_pixels_on_edge(edge, x_m):
-    # Find coordinates of white pixels (non-zero values)
-    coords = np.column_stack(np.where(edge > 0))
-    coords[:, [0, 1]] = coords[:, [1, 0]]
-    coords[:,0] = x_m
-    return coords if len(coords) > 0 else None
+    ys = np.argmax(edge)
+
+    if edge[ys] > 0:
+        return np.array([[x_m, ys]])  # Take first white pixel row
+    return None
+
+""" def findpoints_iterative(x_0, x_n, img):
+    from collections import deque
+
+    points = []
+    queue = deque()
+    queue.append((x_0, x_n))
+
+    while queue:
+        x_start, x_end = queue.popleft()
+
+        if abs(x_end - x_start) < 10:
+            continue
+
+        x_m = (x_start + x_end) / 2
+
+        # Run edge detection
+        edge = run_convolution_on_image(img, x_m)
+        coord = coordinates_of_white_pixels_on_edge(edge, x_m)
+
+        if coord is not None:
+            points.append(coord)
+
+            # Add both left and right intervals to the queue
+            queue.append((x_start, x_m))
+            queue.append((x_m, x_end))
+
+    return np.array(points) """
 
 
 def findpoints(x_0, x_n, points, img, left = False, right = False):
@@ -76,7 +106,9 @@ binary_mask = np.where(img < 10, 255, 0).astype(np.uint8)
 height, width = img.shape
 print(f"Image dimensions: {width}x{height}")
 
-points = findpoints(0, width, None, binary_mask)
+print('start')
+points = findpoints(0, width, None, img)
+#points = findpoints_iterative(0, width, binary_mask)
 print("points:")
 print(points)
 
@@ -118,7 +150,7 @@ Z = A * X**2 + B * X * Y + C * Y**2 + D * X + E * Y + F
 # Plot the conic section
 
 plt.figure(figsize=(10, 8))
-plt.contour(X, Y, Z, levels=[0], colors='blue')
+#plt.contour(X, Y, Z, levels=[0], colors='blue')
 #plt.imshow(canny, cmap='gray')
 plt.imshow(img, cmap='gray')
 plt.scatter(points[:, 0], points[:, 1], color='blue')
