@@ -98,7 +98,7 @@ def findpoints(x_0, x_n, points, img, left = False, right = False):
         return points
 
 
-img = cv2.imread('test_images/earth.jpg', 0)
+img = cv2.imread('test_images/piCam_530km.png', 0)
 binary_mask = np.where(img < 10, 255, 0).astype(np.uint8)
 
 
